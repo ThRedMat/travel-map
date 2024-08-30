@@ -12,17 +12,29 @@ if ($result->num_rows > 0) {
     }
 }
 
+// Récupérer la liste des types de transport
+$sql = "SELECT id, type FROM transports";
+$result = $conn->query($sql);
+
+$transports = [];
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $transports[$row['id']] = $row['type'];
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nom = trim($_POST['nom']);
     $etapes = $_POST['etapes']; // Tableau d'IDs de villes
+    $transport_id = $_POST['transport']; // ID du transport sélectionné
 
-    if (empty($nom) || empty($etapes)) {
-        echo "Le nom du trajet et les étapes doivent être remplis.";
+    if (empty($nom) || empty($etapes) || empty($transport_id)) {
+        echo "Le nom du trajet, les étapes, et le type de transport doivent être remplis.";
     } else {
         // Insertion du trajet
-        $sqlTrajet = "INSERT INTO trajets (nom) VALUES (?)";
+        $sqlTrajet = "INSERT INTO trajets (nom, transport_id) VALUES (?, ?)";
         $stmtTrajet = $conn->prepare($sqlTrajet);
-        $stmtTrajet->bind_param("s", $nom);
+        $stmtTrajet->bind_param("si", $nom, $transport_id);
 
         if ($stmtTrajet->execute()) {
             $trajet_id = $stmtTrajet->insert_id;
@@ -54,7 +66,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <head>
       <title>Ajouter un trajet</title>
-      <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
@@ -62,6 +73,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <form method="post" action="ajouter_trajet.php">
             <label for="nom">Nom du trajet :</label>
             <input type="text" id="nom" name="nom" required>
+            <br><br>
+
+            <!-- Sélection du type de transport -->
+            <label for="transport">Type de transport :</label>
+            <select id="transport" name="transport" required>
+                  <option value="">Sélectionnez un type de transport</option>
+                  <?php foreach ($transports as $id => $type) { ?>
+                  <option value="<?php echo $id; ?>"><?php echo htmlspecialchars($type); ?></option>
+                  <?php } ?>
+            </select>
             <br><br>
 
             <!-- Sélection des villes -->

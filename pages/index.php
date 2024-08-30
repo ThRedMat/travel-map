@@ -2,10 +2,9 @@
 require '../includes/db.php';
 
 // Récupération des trajets avec les noms des villes
-$sql = "
-SELECT id, nom FROM trajets
-";
-
+$sql = "SELECT trajets.id, trajets.nom, transports.type 
+        FROM trajets
+        JOIN transports ON trajets.transport_id = transports.id;";
 $result = $conn->query($sql);
 
 $trajets = [];
@@ -15,57 +14,133 @@ if ($result->num_rows > 0) {
         $trajets[] = $row;
     }
 } else {
-    $trajets = []; // Assurez-vous que $trajets est défini comme un tableau vide si aucun résultat
+    $trajets = [];
 }
 
 $conn->close();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 
 <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Liste des trajets</title>
-      <link rel="stylesheet" href="../assets/css/style.css">
+      <style>
+      body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+      }
+
+      .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            /* Centrer tout le contenu textuel */
+      }
+
+      h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+            /* Centrer le titre */
+      }
+
+      table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+      }
+
+      th,
+      td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            /* Centrer le texte dans les cellules */
+      }
+
+      th {
+            background-color: #343a40;
+            color: #ffffff;
+      }
+
+      .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #ffffff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            margin: 5px;
+      }
+
+      .btn:hover {
+            background-color: #0056b3;
+      }
+
+      .alert {
+            padding: 15px;
+            background-color: #ffc107;
+            color: #856404;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: inline-block;
+            width: 100%;
+            /* Assure que l'alerte prenne toute la largeur du container */
+            text-align: center;
+            /* Centre le texte dans l'alerte */
+      }
+      </style>
 </head>
 
 <body>
-      <h1>Trajets enregistrés</h1>
-      <?php if (!empty($trajets)) { ?>
-      <table border="1">
-            <tr>
-                  <th>Numéro du trajet</th>
-                  <th>Nom</th>
+      <div class="container">
+            <h1>Trajets enregistrés</h1>
 
-            </tr>
-            <?php foreach ($trajets as $trajet) { ?>
-            <tr>
-                  <td><?php echo htmlspecialchars($trajet['id']); ?></td>
-                  <td><?php echo htmlspecialchars($trajet['nom']); ?></td>
-
-            </tr>
+            <?php if (!empty($trajets)) { ?>
+            <table>
+                  <thead>
+                        <tr>
+                              <th>Numéro du trajet</th>
+                              <th>Nom</th>
+                              <th>Moyen de transports utilisé</th>
+                              <th>Action</th>
+                        </tr>
+                  </thead>
+                  <tbody>
+                        <?php foreach ($trajets as $trajet) { ?>
+                        <tr>
+                              <td><?php echo htmlspecialchars($trajet['id']); ?></td>
+                              <td><?php echo htmlspecialchars($trajet['nom']); ?></td>
+                              <td><?php echo htmlspecialchars($trajet['type']); ?></td>
+                              <td>
+                                    <form action="carte.php" method="get" style="display: inline;">
+                                          <input type="hidden" name="trajet_id"
+                                                value="<?php echo htmlspecialchars($trajet['id']); ?>">
+                                          <button type="submit" class="btn">Voir sur la carte</button>
+                                    </form>
+                              </td>
+                        </tr>
+                        <?php } ?>
+                  </tbody>
+            </table>
+            <?php } else { ?>
+            <div class="alert">
+                  Aucun trajet n'est disponible.
+            </div>
             <?php } ?>
-      </table>
-      <?php } else { ?>
-      <p>Aucun trajet n'est disponible.</p>
-      <?php } ?>
 
-      <!-- Bouton pour accéder à la carte -->
-      <br>
-      <form action="carte.php" method="get">
-            <button type="submit">Voir la carte des trajets</button>
-      </form>
-
-      <!-- Bouton pour accéder à la page d'ajout de ville -->
-      <br>
-      <form action="ajouter_trajet.php" method="get">
-            <button type="submit">Ajouter un trajet</button>
-      </form>
-
-      <br>
-      <form action="ajouter_voyage.php" method="get">
-            <button type="submit">Ajouter un voyage</button>
-      </form>
+            <a href="ajouter_trajet.php" class="btn" style="background-color: #28a745;">Ajouter un trajet</a>
+            <!-- <a href="ajouter_voyage.php" class="btn" style="background-color: #17a2b8;">Ajouter un voyage</a>-->
+      </div>
 </body>
 
 </html>
